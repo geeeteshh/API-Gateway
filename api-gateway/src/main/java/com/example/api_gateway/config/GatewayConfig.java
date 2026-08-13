@@ -76,36 +76,26 @@ public class GatewayConfig {
                         }})))
                         .uri("http://localhost:8083"))
 
-                // Route for a secured user-only endpoint
-                .route("products_user_route", r -> r.path("/products/user")
-                        .and()
-                        .predicate(exchange -> {
-                            String rolesHeader = exchange.getRequest().getHeaders().getFirst("X-User-Roles");
-                            if (rolesHeader != null) {
-                                List<String> roles = Arrays.asList(rolesHeader.split(","));
-                                return roles.contains("ROLE_USER");
-                            }
-
-                            return false;
-                        })
+                // Route for a general secured endpoint (any valid token)
+                .route("products_secured_route", r -> r.path("/products/secured")
                         .filters(f -> f.filter(jwtAuthenticationGatewayFilterFactory.apply(new JwtAuthenticationGatewayFilterFactory.Config() {{
                             setIsPublic(false);
                         }})))
                         .uri("http://localhost:8083"))
 
-                // Route for a secured admin-only endpoint
-                .route("products_admin_route", r -> r.path("/products/admin")
-                        .and()
-                        .predicate(exchange -> {
-                            String rolesHeader = exchange.getRequest().getHeaders().getFirst("X-User-Roles");
-                            if (rolesHeader != null) {
-                                List<String> roles = Arrays.asList(rolesHeader.split(","));
-                                return roles.contains("ROLE_ADMIN");
-                            }
-                            return false;
-                        })
+                // Route for a secured user-only endpoint
+                .route("products_user_route", r -> r.path("/products/user")
                         .filters(f -> f.filter(jwtAuthenticationGatewayFilterFactory.apply(new JwtAuthenticationGatewayFilterFactory.Config() {{
                             setIsPublic(false);
+                            setRequiredRole("ROLE_USER");
+                        }})))
+                        .uri("http://localhost:8083"))
+
+                // Route for a secured admin-only endpoint
+                .route("products_admin_route", r -> r.path("/products/admin", "/products/huhh")
+                        .filters(f -> f.filter(jwtAuthenticationGatewayFilterFactory.apply(new JwtAuthenticationGatewayFilterFactory.Config() {{
+                            setIsPublic(false);
+                            setRequiredRole("ROLE_ADMIN");
                         }})))
                         .uri("http://localhost:8083"))
                 .build();

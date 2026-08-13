@@ -48,13 +48,20 @@ public class JwtAuthenticationGatewayFilterFactory extends AbstractGatewayFilter
 
             try {
                 // Validate and parse the JWT
-                SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+                byte[] keyBytes = io.jsonwebtoken.io.Decoders.BASE64.decode(secret);
+                SecretKey key = Keys.hmacShaKeyFor(keyBytes);
                 Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
 
                 // Get the user roles from the token and add them to the request headers
                 // so the GatewayConfig can perform authorization
                 List<String> roles = (List<String>) claims.get("roles");
                 if (roles != null) {
+                    if (config.getRequiredRole() != null && !config.getRequiredRole().isEmpty()) {
+                        if (!roles.contains(config.getRequiredRole())) {
+                            return this.onError(exchange, "Access denied: insufficient roles", HttpStatus.FORBIDDEN);
+                        }
+                    }
+
                     ServerHttpRequest modifiedRequest = request.mutate()
                             .header("X-User-Roles", String.join(",", roles))
                             .build();
@@ -79,6 +86,7 @@ public class JwtAuthenticationGatewayFilterFactory extends AbstractGatewayFilter
 
     public static class Config {
         private boolean isPublic;
+        private String requiredRole;
 
         public boolean isPublic() {
             return isPublic;
@@ -86,6 +94,14 @@ public class JwtAuthenticationGatewayFilterFactory extends AbstractGatewayFilter
 
         public void setIsPublic(boolean isPublic) {
             this.isPublic = isPublic;
+        }
+
+        public String getRequiredRole() {
+            return requiredRole;
+        }
+
+        public void setRequiredRole(String requiredRole) {
+            this.requiredRole = requiredRole;
         }
     }
 }

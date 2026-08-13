@@ -35,8 +35,6 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // 2. UserDetailsService: Tells Spring Security where to find user details.
-    //    For now, we'll use an in-memory user.
     @Bean
     public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
         UserDetails user = User.builder()
@@ -44,9 +42,12 @@ public class SecurityConfig {
                 .password(passwordEncoder.encode("password")) // Encode the password!
                 .roles("USER")
                 .build();
-        // You can add more users here if needed:
-        // UserDetails admin = User.builder().username("admin").password(passwordEncoder.encode("adminpass")).roles("ADMIN").build();
-        return new InMemoryUserDetailsManager(user); // Pass the user(s) to the manager
+        UserDetails admin = User.builder()
+                .username("admin")
+                .password(passwordEncoder.encode("password"))
+                .roles("ADMIN")
+                .build();
+        return new InMemoryUserDetailsManager(user, admin); // Pass both users to the manager
     }
 
     // 3. AuthenticationManager: The core component that performs authentication.
