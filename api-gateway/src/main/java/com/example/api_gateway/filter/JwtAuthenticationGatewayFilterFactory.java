@@ -33,12 +33,10 @@ public class JwtAuthenticationGatewayFilterFactory extends AbstractGatewayFilter
         return (exchange, chain) -> {
             ServerHttpRequest request = exchange.getRequest();
 
-            // If the route is public, bypass the JWT validation
             if (config.isPublic()) {
                 return chain.filter(exchange);
             }
 
-            // Otherwise, validate the JWT
             String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                 return this.onError(exchange, "Authorization header is missing or invalid", HttpStatus.UNAUTHORIZED);
@@ -47,13 +45,10 @@ public class JwtAuthenticationGatewayFilterFactory extends AbstractGatewayFilter
             String token = authHeader.substring(7);
 
             try {
-                // Validate and parse the JWT
                 byte[] keyBytes = io.jsonwebtoken.io.Decoders.BASE64.decode(secret);
                 SecretKey key = Keys.hmacShaKeyFor(keyBytes);
                 Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
 
-                // Get the user roles from the token and add them to the request headers
-                // so the GatewayConfig can perform authorization
                 List<String> roles = (List<String>) claims.get("roles");
                 if (roles != null) {
                     if (config.getRequiredRole() != null && !config.getRequiredRole().isEmpty()) {
@@ -67,12 +62,10 @@ public class JwtAuthenticationGatewayFilterFactory extends AbstractGatewayFilter
                             .build();
                     return chain.filter(exchange.mutate().request(modifiedRequest).build());
                 } else {
-                    // Reject if the token is valid but doesn't have roles
                     return this.onError(exchange, "JWT is missing user roles", HttpStatus.FORBIDDEN);
                 }
 
             } catch (Exception e) {
-                // Catch any validation failure, including expired tokens or bad signatures
                 return this.onError(exchange, "JWT validation failed: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
             }
         };
