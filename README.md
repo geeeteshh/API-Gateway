@@ -4,7 +4,7 @@ A secure, production-ready microservices architecture built with Spring Boot, Sp
 
 ---
 
-## 🏗️ Architecture Overview
+##  Architecture Overview
 
 ```text
                +---------------------------------------+
@@ -31,7 +31,7 @@ A secure, production-ready microservices architecture built with Spring Boot, Sp
 
 ---
 
-## 🛠️ Microservices breakdown
+## Microservices breakdown
 
 ### 1. `api-gateway` (Port `8082`)
 * Handles central routing, token verification, and role authorization.
@@ -51,7 +51,7 @@ A secure, production-ready microservices architecture built with Spring Boot, Sp
 
 ---
 
-## 🚀 How to Run the Project Locally
+##  How to Run the Project Locally
 
 Run each service in a separate terminal tab from the root directory:
 
@@ -68,7 +68,7 @@ cd api-gateway && ./mvnw spring-boot:run
 
 ---
 
-## 🧪 Testing the APIs (Postman / Curl)
+## Testing the APIs (Postman / Curl)
 
 All requests go through the API Gateway (port `8082`).
 
